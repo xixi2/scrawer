@@ -11,19 +11,28 @@ from bs4 import BeautifulSoup
 
 
 def set_header():
-    header = dict()
-    header['Accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
-    header['Accept-Encoding'] = 'gzip, deflate, sdch, br'
-    header['Accept-Language'] = 'zh-CN,zh;q=0.8,zh-TW;q=0.6'
-    header['Connection'] = 'keep-alive'
-    header['Host'] = 'movie.douban.com'
-    header['Referer'] = 'https://www.douban.com/accounts/login?source=movie'
-    header[
-        'User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36'
+    """
+    设置爬虫的HTTP头部
+    :return:
+    """
+    header = {
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Encoding': 'gzip, deflate, sdch, br',
+        'Accept-Language': 'zh-CN,zh;q=0.8,zh-TW;q=0.6',
+        'Connection': 'close',  # 建立短连接，防止被服务器发现是爬虫
+        'Host': 'movie.douban.com',
+        'Referer': 'https://www.douban.com/accounts/login?source=movie',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36'
+    }
     return header
 
 
 def search(soup):
+    """
+    从抓取的网页中提取想要的信息：用户名，评论时间等等
+    :param soup:
+    :return:
+    """
     comment_list = []
     comments = soup.find_all("div", class_='comment-item')
     for comment in comments:
@@ -68,20 +77,17 @@ def set_cookies():
 
 
 def get_info(url):
-    # 发送请求表头，爬取所需要的信息
-    page_num = 0
+    """
+    爬取指定的url
+    :param url:
+    :return:
+    """
     header = set_header()
-
-    # 设置cookie，不设置cookie也行，cookie的作用还没有弄明白
-    # cookies = set_cookies()
-    # data = requests.get(url, timeout=20, headers=header, cookies=cookies).text
-
     data = requests.get(url, timeout=20, headers=header).text
     soup = BeautifulSoup(data, 'lxml')
     comment_list = search(soup)
     pattern = re.compile(r'a href="(.*?)" data-page="" class="next"')
     page_next = re.findall(pattern, data)
-    page_num += 1
     return comment_list, page_next
 
 
@@ -130,7 +136,7 @@ if __name__ == '__main__':
                         "short_comment": []}
 
         url = (url_common + "?status=P") % (movie_id,)
-        while 1:
+        while True:
             comment_list, page_next = get_info(url)
             users, watched_list, comment_times, ratings, votings, short_comment_list = split_comment_list(comment_list)
             comment_dict["user_name"].extend(users)
