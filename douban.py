@@ -35,7 +35,7 @@ def search(soup):
         watched = comment_info.contents[3].text.strip()
 
         # 评论时间
-        comment_time = comment.find("a", class_="comment-time")
+        comment_time = comment_info.find("span", class_="comment-time")
         comment_time = comment_time.get("title") if comment_time else u"评论时间不存在"
 
         # 打分
