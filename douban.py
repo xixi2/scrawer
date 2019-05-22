@@ -57,10 +57,10 @@ def search(soup):
 
         voting = comment_vote.find("span", class_="votes").text.strip()
 
-        print("==========================================================================")
-        print("user_name: %s, watched: %s, comment_time: %s, rating: %s, voting: %s" % (
-            user_name, watched, comment_time, rating, voting))
-        print("短评： %s" % short_comment)
+        # print("==========================================================================")
+        # print("user_name: %s, watched: %s, comment_time: %s, rating: %s, voting: %s" % (
+        #     user_name, watched, comment_time, rating, voting))
+        # print("短评： %s" % short_comment)
         if user_name or watched or comment_time or rating:
             comment_list.append((user_name, watched, comment_time, rating, voting, short_comment))
     return comment_list
@@ -134,6 +134,8 @@ if __name__ == '__main__':
         # 初始化comment_dict
         comment_dict = {"user_name": [], "watched": [], "comment_time": [], "rating": [], "voting": [],
                         "short_comment": []}
+        print("start capture %s comments for movie %s" % (
+            len(comment_dict.get("user_name", [])), movie_dict.get(movie_id)))
 
         url = (url_common + "?status=P") % (movie_id,)
         while True:
@@ -157,7 +159,8 @@ if __name__ == '__main__':
             else:
                 break
         if comment_dict:
-            print("totally capture %s comments for movie %s" % (len(comment_dict.get("user_name", [])), movie_id))
+            print("totally capture %s comments for movie %s" % (
+                len(comment_dict.get("user_name", [])), movie_dict.get(movie_id)))
             fields = ["user_name", "watched", "comment_time", "rating", "voting", "short_comment"]
-            csv_file = movie_id + ".csv"  # 每一部电影保存到一个csv文件中，文件名是电影⍳d
+            csv_file = movie_dict.get(movie_id) + ".csv"  # 每一部电影保存到一个csv文件中，文件名是电影⍳d
             save2csv(comment_dict, fields, csv_file)
