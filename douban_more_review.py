@@ -40,11 +40,14 @@ def search(soup):
         comment_time_tag = head_hd.find("span", class_="main-meta")
         comment_time = comment_time_tag.text.strip() if comment_time_tag else u"评论时间不存在"
         short_comment = head_bd.contents[1].text.strip() if head_bd.contents[1] else u"尚未有短评"
+
+        # pos_count:认为有用的人数，neg_count：认为无用的人数, reply_count:回应的人数
         pos_count = head_bd.find("a", class_="action-btn up").text.strip() if head_bd.find("a",
                                                                                            class_="action-btn up") else 0
         neg_count = head_bd.find("a", class_="action-btn down").text.strip() if head_bd.find("a",
                                                                                              class_="action-btn down") else 0
-        reply_count = head_bd.find("a", class_="reply").text if head_bd.find("a", class_="reply") else 0
+        reply_count = get_number(head_bd.find("a", class_="reply").text.strip()) if head_bd.find("a",
+                                                                                                 class_="reply") else 0
 
         # print("==========================================================================")
         print("user_name: %s, comment_time: %s, rating: %s, pos_count: %s, neg_count: %s, reply_count: %s" % (
