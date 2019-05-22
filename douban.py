@@ -72,13 +72,11 @@ def get_info(url):
     page_num = 0
     header = set_header()
 
-    get_url = url  # 利用cookie请求访问另一个网址
-
     # 设置cookie，不设置cookie也行，cookie的作用还没有弄明白
     # cookies = set_cookies()
-    # data = requests.get(get_url, timeout=20, headers=header, cookies=cookies).text
+    # data = requests.get(url, timeout=20, headers=header, cookies=cookies).text
 
-    data = requests.get(get_url, timeout=20, headers=header).text
+    data = requests.get(url, timeout=20, headers=header).text
     soup = BeautifulSoup(data, 'lxml')
     comment_list = search(soup)
     pattern = re.compile(r'a href="(.*?)" data-page="" class="next"')
@@ -117,16 +115,21 @@ def split_comment_list(comment_list):
 
 
 if __name__ == '__main__':
-    # 要爬取的电影的id：要添加电影，只需要将将电影的id加入到movie_ids中就行，电影的id直接在豆瓣搜索，从URL中截取出来
-    movie_ids = ["26584183", "27060077", "30334073", "26266893", "30163509", "26100958"]
-    # 26266893: 流浪地球 30163509:飞驰人生 26100958:复仇者联盟4
-
-    # 初始化comment_dict
-    comment_dict = {"user_name": [], "watched": [], "comment_time": [], "rating": [], "voting": [], "short_comment": []}
+    # 要爬取的电影的id及电影名：要添加电影，只需要将将电影的id及其对应的电影名加入到movie_dict中就行，电影的id直接在豆瓣搜索，从URL中截取出来
+    movie_dict = {
+        "26584183": "权利的游戏第8季", "27060077": "绿皮书 Green Book", "30334073": "调音师 Andhadhun",
+        "26266893": "流浪地球", "30163509": "飞驰人生", "26100958": "复仇者联盟4"
+    }
+    movie_ids = list(movie_dict.keys())
 
     # 依次爬取每个电影的评论
+    url_common = "https://movie.douban.com/subject/%s/comments"
     for movie_id in movie_ids:
-        url = "https://movie.douban.com/subject/%s/comments?status=P" % (movie_id,)
+        # 初始化comment_dict
+        comment_dict = {"user_name": [], "watched": [], "comment_time": [], "rating": [], "voting": [],
+                        "short_comment": []}
+
+        url = (url_common + "?status=P") % (movie_id,)
         while 1:
             comment_list, page_next = get_info(url)
             users, watched_list, comment_times, ratings, votings, short_comment_list = split_comment_list(comment_list)
@@ -137,19 +140,18 @@ if __name__ == '__main__':
             comment_dict["voting"].extend(votings)
             comment_dict["short_comment"].extend(short_comment_list)
 
-            if comment_dict.get("user_name"):
-                print("len of users: %s" % (len(comment_dict["user_name"])))
+            # if comment_dict.get("user_name"):
+            #     print("len of users: %s" % (len(comment_dict["user_name"])))
+
+            # 睡眠一会，继续爬取下一页
             time.sleep(np.random.rand() * 5)
             if page_next:
-                first_half = "https://movie.douban.com/subject/%s/comments" % (movie_id,)
-                last_half = re.sub(r'amp;', '', page_next[0])
-                url = first_half + last_half  # 翻页url
-                # print("page_next: ", page_next)
-                # print("page_next[0]: ", page_next[0])
-                # print("first_half: %s, last_half: %s" % (first_half, last_half))
+                page_num_info = re.sub(r'amp;', '', page_next[0])
+                url = (url_common + page_num_info) % (movie_id,)  # 翻页url
             else:
                 break
         if comment_dict:
+            print("totally capture %s comments for movie %s" % (len(comment_dict.get("user_name", [])), movie_id))
             fields = ["user_name", "watched", "comment_time", "rating", "voting", "short_comment"]
             csv_file = movie_id + ".csv"  # 每一部电影保存到一个csv文件中，文件名是电影⍳d
             save2csv(comment_dict, fields, csv_file)
