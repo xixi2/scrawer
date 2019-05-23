@@ -40,6 +40,7 @@ def search(soup):
         comment_time_tag = head_hd.find("span", class_="main-meta")
         comment_time = comment_time_tag.text.strip() if comment_time_tag else u"评论时间不存在"
         short_comment = head_bd.contents[1].text.strip() if head_bd.contents[1] else u"尚未有短评"
+
         long_comment_tag = head_bd.find("div", class_="short-content")
         long_comment = long_comment_tag.text.strip()
 
@@ -137,7 +138,7 @@ if __name__ == '__main__':
     for movie_id in movie_ids:
         # 初始化comment_dict
         comment_dict = {"user_name": [], "watched": [], "comment_time": [], "rating": [], "pos_count": [],
-                        "neg_count": [], "reply_count": [], "short_comment": []}
+                        "neg_count": [], "reply_count": [], "short_comment": [], "long_comment": []}
 
         url = (url_common + "?status=P") % (movie_id,)
         page_num = 0  # 页码，第一页的页码为0，第二页为1,以此类推
@@ -169,6 +170,7 @@ if __name__ == '__main__':
 
         if comment_dict:
             print("totally capture %s comments for movie %s" % (len(comment_dict.get("user_name", [])), movie_id))
-            fields = ["user_name", "comment_time", "rating", "pos_count", "neg_count", "reply_count", "short_comment"]
+            fields = ["user_name", "comment_time", "rating", "pos_count", "neg_count", "reply_count", "short_comment",
+                      "long_comment"]
             csv_file = movie_dict.get(movie_id) + "_more.csv"  # 每一部电影保存到一个csv文件中，文件名是电影⍳d
             save2csv(comment_dict, fields, csv_file)
