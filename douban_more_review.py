@@ -40,6 +40,8 @@ def search(soup):
         comment_time_tag = head_hd.find("span", class_="main-meta")
         comment_time = comment_time_tag.text.strip() if comment_time_tag else u"评论时间不存在"
         short_comment = head_bd.contents[1].text.strip() if head_bd.contents[1] else u"尚未有短评"
+        long_comment_tag = head_bd.find("div", class_="short-content")
+        long_comment = long_comment_tag.text.strip()
 
         # pos_count:认为有用的人数，neg_count：认为无用的人数, reply_count:回应的人数
         pos_count = head_bd.find("a", class_="action-btn up").text.strip() if head_bd.find("a",
@@ -53,8 +55,10 @@ def search(soup):
         print("user_name: %s, comment_time: %s, rating: %s, pos_count: %s, neg_count: %s, reply_count: %s" % (
             user_name, comment_time, rating, pos_count, neg_count, reply_count))
         print("短评： %s" % short_comment)
+        print("长评： %s" % long_comment)
         if user_name or comment_time or rating:
-            comment_list.append((user_name, comment_time, rating, pos_count, neg_count, reply_count, short_comment))
+            comment_list.append(
+                (user_name, comment_time, rating, pos_count, neg_count, reply_count, short_comment, long_comment))
 
     return comment_list
 
@@ -107,8 +111,8 @@ def save2csv(comments_dict, fields, csv_file):
 
 
 def split_comment_list(comment_list):
-    users, comment_times, ratings, pos_counts, neg_counts, reply_counts, short_comments = [], [], [], [], [], [], []
-    for user_name, comment_time, rating, pos_count, neg_count, reply_count, short_comment in comment_list:
+    users, comment_times, ratings, pos_counts, neg_counts, reply_counts, short_comments, long_comments = [[]] * 8
+    for user_name, comment_time, rating, pos_count, neg_count, reply_count, short_comment, long_comment in comment_list:
         users.append(user_name)
         comment_times.append(comment_time)
         ratings.append(rating)
@@ -116,7 +120,8 @@ def split_comment_list(comment_list):
         neg_counts.append(neg_count)
         reply_counts.append(reply_count)
         short_comments.append(short_comment)
-    return users, comment_times, ratings, pos_counts, neg_counts, reply_counts, short_comments
+        long_comments.append(long_comment)
+    return users, comment_times, ratings, pos_counts, neg_counts, reply_counts, short_comments, long_comments
 
 
 if __name__ == '__main__':
@@ -139,7 +144,7 @@ if __name__ == '__main__':
         total_reviews = 0  # 总页数
         while 1:
             comment_list, total_num = get_info(url, page_num == 0)
-            users, comment_times, ratings, pos_counts, neg_counts, reply_counts, short_comments = split_comment_list(
+            users, comment_times, ratings, pos_counts, neg_counts, reply_counts, short_comments, long_comments = split_comment_list(
                 comment_list)
             comment_dict["user_name"].extend(users)
             comment_dict["comment_time"].extend(comment_times)
@@ -148,6 +153,7 @@ if __name__ == '__main__':
             comment_dict["neg_count"].extend(neg_counts)
             comment_dict["reply_count"].extend(reply_counts)
             comment_dict["short_comment"].extend(short_comments)
+            comment_dict["long_comment"].extend(long_comments)
 
             # 如果当前爬取的是第一页，则设置总的评论条数
             if not page_num:
